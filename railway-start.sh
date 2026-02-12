@@ -74,7 +74,10 @@ cat > ~/.openclaw/openclaw.json << 'EOFCONFIG'
     "auth": {
       "mode": "token"
     },
-    "trustedProxies": ["*"]
+    "trustedProxies": ["*"],
+    "controlUi": {
+      "dangerouslyDisableDeviceAuth": true
+    }
   }
 }
 EOFCONFIG
