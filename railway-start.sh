@@ -30,34 +30,14 @@ if [ -d "/data" ]; then
     rm /data/.write-test
     echo "✓ /data is writable (files)"
 
-    # Try creating directories - capture actual error
-    ERROR_OUTPUT=$(mkdir -p "$OPENCLAW_STATE_DIR/agents/main/agent" 2>&1)
-    if [ $? -eq 0 ]; then
+    # Create directories directly - use explicit path to avoid variable expansion issues
+    if mkdir -p /data/.openclaw/agents/main/agent /data/workspace 2>/dev/null; then
       echo "✓ Created $OPENCLAW_STATE_DIR"
     else
-      echo "⚠ mkdir failed: $ERROR_OUTPUT"
-
-      # Try alternate approach: create parent first, then check permissions
-      if mkdir -p /data/.openclaw 2>&1; then
-        echo "✓ Created /data/.openclaw"
-        # Fix permissions if needed
-        chmod 755 /data/.openclaw 2>/dev/null || echo "Note: chmod failed (may not be needed)"
-
-        # Try again with full path
-        if mkdir -p "$OPENCLAW_STATE_DIR/agents/main/agent" 2>&1; then
-          echo "✓ Created full directory structure"
-        else
-          echo "⚠ Still cannot create subdirectories"
-          echo "⚠ Falling back to home directory"
-          export OPENCLAW_STATE_DIR="$HOME/.openclaw"
-          export OPENCLAW_WORKSPACE_DIR="$HOME/workspace"
-        fi
-      else
-        echo "⚠ Cannot create /data/.openclaw"
-        echo "⚠ Falling back to home directory"
-        export OPENCLAW_STATE_DIR="$HOME/.openclaw"
-        export OPENCLAW_WORKSPACE_DIR="$HOME/workspace"
-      fi
+      echo "⚠ Failed to create directories in /data"
+      echo "⚠ Falling back to home directory"
+      export OPENCLAW_STATE_DIR="$HOME/.openclaw"
+      export OPENCLAW_WORKSPACE_DIR="$HOME/workspace"
     fi
   else
     echo "⚠ /data exists but is not writable by current user ($(whoami) uid=$(id -u))"
