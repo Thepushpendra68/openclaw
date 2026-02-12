@@ -70,9 +70,11 @@ cat > ~/.openclaw/openclaw.json << 'EOFCONFIG'
     }
   },
   "gateway": {
+    "mode": "local",
     "auth": {
       "mode": "token"
-    }
+    },
+    "trustedProxies": ["*"]
   }
 }
 EOFCONFIG
