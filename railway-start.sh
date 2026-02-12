@@ -82,7 +82,7 @@ cat > ~/.openclaw/openclaw.json << 'EOFCONFIG'
   "channels": {
     "telegram": {
       "dmPolicy": "open",
-      "allowFrom": ["*"]
+      "allowFrom": ["669367400"]
     }
   }
 }
