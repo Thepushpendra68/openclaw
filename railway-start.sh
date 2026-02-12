@@ -78,6 +78,12 @@ cat > ~/.openclaw/openclaw.json << 'EOFCONFIG'
     "controlUi": {
       "dangerouslyDisableDeviceAuth": true
     }
+  },
+  "channels": {
+    "telegram": {
+      "dmPolicy": "open",
+      "allowFrom": ["*"]
+    }
   }
 }
 EOFCONFIG
