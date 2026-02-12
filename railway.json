@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "node openclaw.mjs gateway --allow-unconfigured",
+    "startCommand": "bash /app/railway-start.sh",
     "healthcheckPath": "",
     "healthcheckTimeout": 60
   }
