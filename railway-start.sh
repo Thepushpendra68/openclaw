@@ -51,13 +51,6 @@ cat > ~/.openclaw/openclaw.json << 'EOFCONFIG'
               "output": 60,
               "cacheRead": 2,
               "cacheWrite": 10
-            },
-            "capabilities": {
-              "completion": true,
-              "streaming": true,
-              "tools": true,
-              "vision": false,
-              "reasoning": false
             }
           }
         ]
@@ -77,7 +70,6 @@ cat > ~/.openclaw/openclaw.json << 'EOFCONFIG'
     }
   },
   "gateway": {
-    "host": "0.0.0.0",
     "auth": {
       "mode": "token"
     }
