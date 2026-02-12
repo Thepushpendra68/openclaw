@@ -5,6 +5,7 @@
   },
   "deploy": {
     "startCommand": "node openclaw.mjs gateway --allow-unconfigured",
-    "healthcheckPath": "/health"
+    "healthcheckPath": "",
+    "healthcheckTimeout": 60
   }
 }
