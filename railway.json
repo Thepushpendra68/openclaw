@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "node dist/entry.js",
+    "startCommand": "node openclaw.mjs gateway",
     "healthcheckPath": "/health"
   }
 }
