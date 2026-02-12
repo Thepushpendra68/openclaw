@@ -19,10 +19,17 @@ echo "Workspace directory: $OPENCLAW_WORKSPACE_DIR"
 
 # Create OpenClaw directories on persistent volume with error handling
 echo "Creating directories..."
-if mkdir -p "$OPENCLAW_STATE_DIR/agents/main/agent" 2>/dev/null; then
+echo "DEBUG: Attempting to create $OPENCLAW_STATE_DIR/agents/main/agent"
+echo "DEBUG: Current user: $(whoami) ($(id))"
+echo "DEBUG: /data permissions: $(ls -ld /data 2>&1)"
+echo "DEBUG: /data writable test: $(touch /data/.write-test 2>&1 && echo 'YES' && rm /data/.write-test || echo 'NO')"
+
+if mkdir -p "$OPENCLAW_STATE_DIR/agents/main/agent" 2>&1; then
   echo "✓ Created $OPENCLAW_STATE_DIR"
 else
+  ERROR_MSG=$(mkdir -p "$OPENCLAW_STATE_DIR/agents/main/agent" 2>&1)
   echo "⚠ Permission denied creating $OPENCLAW_STATE_DIR"
+  echo "⚠ Error details: $ERROR_MSG"
   echo "⚠ Falling back to home directory"
   export OPENCLAW_STATE_DIR="$HOME/.openclaw"
   export OPENCLAW_WORKSPACE_DIR="$HOME/workspace"
