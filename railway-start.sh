@@ -5,6 +5,11 @@ echo "========================================="
 echo "Configuring OpenClaw for Minimax M2.1"
 echo "========================================="
 
+# Debug: Check permissions and user
+echo "Current user: $(whoami) (uid=$(id -u), gid=$(id -g))"
+echo "Checking /data permissions..."
+ls -ld /data 2>/dev/null || echo "/data does not exist"
+
 # Configure persistent data directories
 export OPENCLAW_STATE_DIR="${OPENCLAW_STATE_DIR:-/data/.openclaw}"
 export OPENCLAW_WORKSPACE_DIR="${OPENCLAW_WORKSPACE_DIR:-/data/workspace}"
@@ -12,9 +17,20 @@ export OPENCLAW_WORKSPACE_DIR="${OPENCLAW_WORKSPACE_DIR:-/data/workspace}"
 echo "State directory: $OPENCLAW_STATE_DIR"
 echo "Workspace directory: $OPENCLAW_WORKSPACE_DIR"
 
-# Create OpenClaw directories on persistent volume
-mkdir -p "$OPENCLAW_STATE_DIR/agents/main/agent"
-mkdir -p "$OPENCLAW_WORKSPACE_DIR"
+# Create OpenClaw directories on persistent volume with error handling
+echo "Creating directories..."
+if mkdir -p "$OPENCLAW_STATE_DIR/agents/main/agent" 2>/dev/null; then
+  echo "✓ Created $OPENCLAW_STATE_DIR"
+else
+  echo "⚠ Permission denied creating $OPENCLAW_STATE_DIR"
+  echo "⚠ Falling back to home directory"
+  export OPENCLAW_STATE_DIR="$HOME/.openclaw"
+  export OPENCLAW_WORKSPACE_DIR="$HOME/workspace"
+  mkdir -p "$OPENCLAW_STATE_DIR/agents/main/agent"
+  echo "✓ Using fallback: $OPENCLAW_STATE_DIR"
+fi
+
+mkdir -p "$OPENCLAW_WORKSPACE_DIR" 2>/dev/null || echo "⚠ Could not create workspace dir"
 
 # Create auth profile for Minimax
 if [ -n "$MINIMAX_API_KEY" ]; then
