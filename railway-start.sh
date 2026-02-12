@@ -19,23 +19,43 @@ echo "Workspace directory: $OPENCLAW_WORKSPACE_DIR"
 
 # Create OpenClaw directories on persistent volume with error handling
 echo "Creating directories..."
-echo "DEBUG: Attempting to create $OPENCLAW_STATE_DIR/agents/main/agent"
-echo "DEBUG: Current user: $(whoami) ($(id))"
-echo "DEBUG: /data permissions: $(ls -ld /data 2>&1)"
-echo "DEBUG: /data writable test: $(touch /data/.write-test 2>&1 && echo 'YES' && rm /data/.write-test || echo 'NO')"
 
-if mkdir -p "$OPENCLAW_STATE_DIR/agents/main/agent" 2>&1; then
-  echo "✓ Created $OPENCLAW_STATE_DIR"
+# Railway volumes sometimes mount with restricted permissions
+# Try to create with explicit permissions
+if [ -d "/data" ]; then
+  echo "Detected /data volume, checking write access..."
+
+  # Test write access with detailed diagnostics
+  if touch /data/.write-test 2>/dev/null; then
+    rm /data/.write-test
+    echo "✓ /data is writable"
+
+    # Create directories with explicit permissions
+    mkdir -m 755 -p "$OPENCLAW_STATE_DIR/agents/main/agent" 2>/dev/null && \
+      echo "✓ Created $OPENCLAW_STATE_DIR" || {
+        echo "⚠ mkdir failed even though /data is writable"
+        echo "⚠ This might be a Railway volume configuration issue"
+        echo "⚠ Falling back to home directory"
+        export OPENCLAW_STATE_DIR="$HOME/.openclaw"
+        export OPENCLAW_WORKSPACE_DIR="$HOME/workspace"
+      }
+  else
+    echo "⚠ /data exists but is not writable by current user ($(whoami) uid=$(id -u))"
+    echo "⚠ /data permissions: $(ls -ld /data)"
+    echo "⚠ Falling back to home directory"
+    export OPENCLAW_STATE_DIR="$HOME/.openclaw"
+    export OPENCLAW_WORKSPACE_DIR="$HOME/workspace"
+  fi
 else
-  ERROR_MSG=$(mkdir -p "$OPENCLAW_STATE_DIR/agents/main/agent" 2>&1)
-  echo "⚠ Permission denied creating $OPENCLAW_STATE_DIR"
-  echo "⚠ Error details: $ERROR_MSG"
-  echo "⚠ Falling back to home directory"
+  echo "⚠ /data does not exist - volume not mounted"
+  echo "⚠ Using home directory"
   export OPENCLAW_STATE_DIR="$HOME/.openclaw"
   export OPENCLAW_WORKSPACE_DIR="$HOME/workspace"
-  mkdir -p "$OPENCLAW_STATE_DIR/agents/main/agent"
-  echo "✓ Using fallback: $OPENCLAW_STATE_DIR"
 fi
+
+# Ensure final directories exist
+mkdir -p "$OPENCLAW_STATE_DIR/agents/main/agent"
+echo "✓ Using storage: $OPENCLAW_STATE_DIR"
 
 mkdir -p "$OPENCLAW_WORKSPACE_DIR" 2>/dev/null || echo "⚠ Could not create workspace dir"
 
