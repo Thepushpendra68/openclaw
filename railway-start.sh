@@ -28,17 +28,37 @@ if [ -d "/data" ]; then
   # Test write access with detailed diagnostics
   if touch /data/.write-test 2>/dev/null; then
     rm /data/.write-test
-    echo "✓ /data is writable"
+    echo "✓ /data is writable (files)"
 
-    # Create directories with explicit permissions
-    mkdir -m 755 -p "$OPENCLAW_STATE_DIR/agents/main/agent" 2>/dev/null && \
-      echo "✓ Created $OPENCLAW_STATE_DIR" || {
-        echo "⚠ mkdir failed even though /data is writable"
-        echo "⚠ This might be a Railway volume configuration issue"
+    # Try creating directories - capture actual error
+    ERROR_OUTPUT=$(mkdir -p "$OPENCLAW_STATE_DIR/agents/main/agent" 2>&1)
+    if [ $? -eq 0 ]; then
+      echo "✓ Created $OPENCLAW_STATE_DIR"
+    else
+      echo "⚠ mkdir failed: $ERROR_OUTPUT"
+
+      # Try alternate approach: create parent first, then check permissions
+      if mkdir -p /data/.openclaw 2>&1; then
+        echo "✓ Created /data/.openclaw"
+        # Fix permissions if needed
+        chmod 755 /data/.openclaw 2>/dev/null || echo "Note: chmod failed (may not be needed)"
+
+        # Try again with full path
+        if mkdir -p "$OPENCLAW_STATE_DIR/agents/main/agent" 2>&1; then
+          echo "✓ Created full directory structure"
+        else
+          echo "⚠ Still cannot create subdirectories"
+          echo "⚠ Falling back to home directory"
+          export OPENCLAW_STATE_DIR="$HOME/.openclaw"
+          export OPENCLAW_WORKSPACE_DIR="$HOME/workspace"
+        fi
+      else
+        echo "⚠ Cannot create /data/.openclaw"
         echo "⚠ Falling back to home directory"
         export OPENCLAW_STATE_DIR="$HOME/.openclaw"
         export OPENCLAW_WORKSPACE_DIR="$HOME/workspace"
-      }
+      fi
+    fi
   else
     echo "⚠ /data exists but is not writable by current user ($(whoami) uid=$(id -u))"
     echo "⚠ /data permissions: $(ls -ld /data)"
